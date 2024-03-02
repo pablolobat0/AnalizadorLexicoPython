@@ -36,7 +36,9 @@ void liberar_lista(Lista *lista) {
     while (actual != NULL) {
         Nodo *aux = actual;
         actual = actual->siguiente;
-        free(aux->componente_lexico.lexema);
+        if (aux->componente_lexico.componente_lexico == ID) {
+            free(aux->componente_lexico.lexema);
+        }
         free(aux);
     }
     free(lista);
