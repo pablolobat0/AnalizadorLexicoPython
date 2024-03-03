@@ -15,7 +15,6 @@ Buffer buffer = {"", 0};
 FILE* archivo_fuente;
 
 
-
 void iniciar_sistema_entrada(char* nombre_archivo) {
     archivo_fuente = fopen(nombre_archivo, "r");
     if (archivo_fuente == NULL) {
@@ -54,4 +53,8 @@ void retroceder_caracter() {
 
 void saltar_caracter() {
     borrar_buffer();
+}
+
+void cerrar_sistema_de_entrada() {
+    fclose(archivo_fuente);
 }

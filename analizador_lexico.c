@@ -14,17 +14,12 @@ void automata_alfanumerico() {
     do {
         caracter_actual = siguiente_caracter();
     } while (isalnum(caracter_actual) || caracter_actual == '_');
-    retroceder_caracter();
+    retroceder_caracter(); // Se retrocede un caracter para que no quede sin analizar
 }
 
 ComponenteLexico aceptar_lexema() {
     ComponenteLexico componente_lexico;
     componente_lexico.lexema = get_lexema();
-    if (strcmp(componente_lexico.lexema, ".") == 0) {
-        componente_lexico.componente_lexico = '.';
-        return componente_lexico;
-    }
-
     componente_lexico.componente_lexico = buscar_e_insertar_en_tabla_de_simbolos(componente_lexico.lexema);
 
     return componente_lexico;
@@ -34,6 +29,7 @@ ComponenteLexico aceptar_lexema_simbolo() {
     ComponenteLexico componente_lexico;
     componente_lexico.lexema = get_lexema();
     componente_lexico.componente_lexico = (int) componente_lexico.lexema[0];
+
     return componente_lexico;
 }
 
@@ -53,6 +49,7 @@ ComponenteLexico siguiente_componente_lexico() {
                         case EOF:
                             componente_lexico.lexema = NULL;
                             componente_lexico.componente_lexico = EOF;
+                            cerrar_sistema_de_entrada();
                             return componente_lexico;
                         case '.':
                         case ',':
@@ -63,7 +60,7 @@ ComponenteLexico siguiente_componente_lexico() {
                         case '{':
                         case '}':
                             return aceptar_lexema_simbolo();
-                        default:
+                        default: // Si no es ninguna opcion, el caracter no tiene porque analizarse
                             saltar_caracter();
                     }
                 }
