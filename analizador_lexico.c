@@ -73,6 +73,10 @@ void automata_entero() {
     do {
         caracter_actual = siguiente_caracter();
     } while (isdigit(caracter_actual) || caracter_actual == '_');
+
+    if (caracter_actual == '.') {
+        automata_punto_flotante();
+    }
 }
 
 void automata_numerico() {
@@ -100,6 +104,14 @@ void automata_numerico() {
     }
 }
 
+void saltar_linea() {
+    int caracter_actual;
+    do {
+        caracter_actual = siguiente_caracter();
+    } while (caracter_actual != '\n');
+    saltar_caracter(); // Borramos el buffer
+}
+
 ComponenteLexico aceptar_lexema() {
     ComponenteLexico componente_lexico;
     componente_lexico.lexema = get_lexema();
@@ -116,41 +128,121 @@ ComponenteLexico aceptar_lexema_simbolo() {
     return componente_lexico;
 }
 
+// Entiendase doble los que pueden ser de la forma '*', '*=', '**', o '**='
+ComponenteLexico automata_operadores_delimitadores_dobles(int caracter_actual, int anterior_caracter) {
+    if (caracter_actual == '=') {
+        return aceptar_lexema();
+    } else if (anterior_caracter == caracter_actual) {
+        if (siguiente_caracter() == '=') {
+            return aceptar_lexema();
+        } else {
+            retroceder_caracter();
+            return aceptar_lexema();
+        }
+    } else {
+        retroceder_caracter();
+        return aceptar_lexema_simbolo();
+    }
+}
+
+// Entiendase simple los que pueden ser de la forma '&' o '&='
+ComponenteLexico automata_operadores_delimitadores_simples(int caracter_actual) {
+    if (caracter_actual == '=') {
+        return aceptar_lexema();
+    } else {
+        retroceder_caracter();
+        return aceptar_lexema_simbolo();
+    }
+}
+
+ComponenteLexico automata_simbolos(int estado) {
+    int caracter_actual = siguiente_caracter();
+    switch (estado) {
+        case '.':
+            if (isdigit(caracter_actual)) {
+                automata_punto_flotante();
+                retroceder_caracter(); // Se retrocede un caracter para que no quede sin analizar
+                return aceptar_lexema();
+            } else {
+                retroceder_caracter();
+                return aceptar_lexema_simbolo();
+            }
+            break;
+        case '/':
+        case '*':
+        case '<':
+        case '>':
+            return automata_operadores_delimitadores_dobles(caracter_actual, estado);
+        case ':':
+        case '=':
+        case '!':
+        case '+':
+        case '%':
+        case '@':
+        case '&':
+        case '|':
+        case '^':
+            return automata_operadores_delimitadores_simples(caracter_actual);
+        case '-':
+            if (caracter_actual == '=' || caracter_actual == '>') {
+                return aceptar_lexema();
+            } else {
+                retroceder_caracter();
+                return aceptar_lexema_simbolo();
+            }
+    }
+}
+
 ComponenteLexico siguiente_componente_lexico() {
     int caracter_actual;
     ComponenteLexico componente_lexico;
-    int estado = 0, componente_lexico_encontrado = 0;
+    int componente_lexico_encontrado = 0;
     while (!componente_lexico_encontrado) {
         caracter_actual = siguiente_caracter();
-        switch (estado) {
-            case 0:
-                if (isalpha(caracter_actual) || caracter_actual == '_') {
-                    automata_alfanumerico();
-                    componente_lexico_encontrado = 1;
-                } else if (isdigit(caracter_actual)) {
-                    automata_numerico();
-                    componente_lexico_encontrado = 1;
-                } else {
-                    switch (caracter_actual) {
-                        case EOF:
-                            componente_lexico.lexema = NULL;
-                            componente_lexico.componente_lexico = EOF;
-                            cerrar_sistema_de_entrada();
-                            return componente_lexico;
-                        case '.':
-                        case ',':
-                        case '[':
-                        case ']':
-                        case '(':
-                        case ')':
-                        case '{':
-                        case '}':
-                            return aceptar_lexema_simbolo(); // Cuando es un simbolo se devuelve el ASCII
-                        default: // Si no es ninguna opcion, el caracter no tiene porque analizarse
-                            saltar_caracter();
-                    }
-                }
-                break;
+        if (isalpha(caracter_actual) || caracter_actual == '_') {
+            automata_alfanumerico();
+            componente_lexico_encontrado = 1;
+        } else if (isdigit(caracter_actual)) {
+            automata_numerico();
+            componente_lexico_encontrado = 1;
+        } else {
+            switch (caracter_actual) {
+                case EOF:
+                    componente_lexico.lexema = NULL;
+                    componente_lexico.componente_lexico = EOF;
+                    cerrar_sistema_de_entrada();
+                    return componente_lexico;
+                case '#': // Comentarios de una linea
+                    saltar_linea();
+                    break;
+                case ';':
+                case ',':
+                case '[':
+                case ']':
+                case '(':
+                case ')':
+                case '{':
+                case '}':
+                    return aceptar_lexema_simbolo(); // Cuando es un simbolo se devuelve el ASCII
+                case '.':
+                case '/':
+                case '*':
+                case '<':
+                case '>':
+                case ':':
+                case '=':
+                case '!':
+                case '-':
+                case '+':
+                case '%':
+                case '@':
+                case '&':
+                case '|':
+                case '^':
+                    return automata_simbolos(caracter_actual);
+                default: // Si no es ninguna opcion, el caracter no tiene porque analizarse
+                    saltar_caracter();
+            }
         }
     }
     retroceder_caracter(); // Se retrocede un caracter para que no quede sin analizar
