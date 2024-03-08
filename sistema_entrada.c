@@ -27,7 +27,10 @@ void iniciar_sistema_entrada(char *nombre_archivo) {
     delantero = 0;
     buffer[(TAM_BUFFER / 2) - 1] = EOF;
     buffer[TAM_BUFFER - 1] = EOF;
-    cargar_bloque(buffer);
+    size_t elementos_leidos = cargar_bloque(buffer);
+    if (elementos_leidos < (TAM_BUFFER / 2) - 1) {
+        buffer[elementos_leidos] = EOF;
+    }
 }
 
 int siguiente_caracter() {
