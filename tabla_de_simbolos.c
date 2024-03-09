@@ -1,12 +1,12 @@
 #include "tabla_de_simbolos.h"
-#include "lista.h"
+#include "tabla_hash.h"
 
-typedef Lista TablaDeSimbolos;
+typedef TablaHash TablaDeSimbolos;
 
 TablaDeSimbolos *tabla_de_simbolos;
 
 void crear_tabla_de_simbolos() {
-    tabla_de_simbolos = crear_lista();
+    tabla_de_simbolos = crear_tabla();
 
     ComponenteLexico palabras_clave[] = {
             {"False",    FALSE},
@@ -40,21 +40,21 @@ void crear_tabla_de_simbolos() {
     };
 
     for (int i = 0; i < (sizeof(palabras_clave) / sizeof(ComponenteLexico)); i++) {
-        insertar(tabla_de_simbolos, palabras_clave[i]);
+        insertar(tabla_de_simbolos, palabras_clave[i].lexema, palabras_clave[i].componente_lexico);
     }
 }
 
 int buscar_e_insertar_en_tabla_de_simbolos(char *lexema) {
-    int comp = buscar(*tabla_de_simbolos, lexema);
+    int comp = buscar(tabla_de_simbolos, lexema);
     if (comp) // Si ya esta en la tabla de simbolos
         return comp;
     // Si no esta, es un identificador
-    ComponenteLexico componente_lexico = {lexema, ID};
-    insertar(tabla_de_simbolos, componente_lexico);
-    return componente_lexico.componente_lexico;
+
+    insertar(tabla_de_simbolos, lexema, ID);
+    return ID;
 }
 
 void destruir_tabla_de_simbolos() {
-    liberar_lista(tabla_de_simbolos);
+    destruir_tabla(tabla_de_simbolos);
 }
 
