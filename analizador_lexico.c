@@ -30,19 +30,20 @@ int automata_numero() {
     return caracter_actual;
 }
 
-void automata_exponente(int caracter_actual) {
-    if (caracter_actual != 'e')
-        return;
-    caracter_actual = siguiente_caracter();
-    if (caracter_actual != '-' || !isdigit(caracter_actual))
-        return;
-    columna++;
-    automata_numero();
+void automata_exponente() {
+    int ultimo_caracter = automata_numero();
+    if (ultimo_caracter == '-')
+        ultimo_caracter = automata_numero();
+    if (ultimo_caracter == 'j' || ultimo_caracter == 'J')
+        siguiente_caracter();
 }
 
 void automata_punto_flotante() {
     int ultimo_caracter = automata_numero();
-    automata_exponente(ultimo_caracter);
+    if (ultimo_caracter == 'e' || ultimo_caracter == 'E')
+        automata_exponente();
+    else if (ultimo_caracter == 'j' || ultimo_caracter == 'J')
+        siguiente_caracter();
 }
 
 void automata_binario() {
@@ -58,12 +59,12 @@ void automata_octal() {
     do {
         caracter_actual = siguiente_caracter();
         columna++;
-    } while ((caracter_actual >= 48 && caracter_actual <= 55) || caracter_actual == '_'); // Numero del 0 al 7 o _
+    } while ((caracter_actual >= '0' && caracter_actual <= '7') || caracter_actual == '_');
 }
 
 bool es_hexadecimal(int caracter) {
-    return ((caracter >= 48 && caracter <= 57) || (caracter >= 65 && caracter <= 70) ||
-            (caracter >= 97 && caracter <= 102) || caracter == '_');
+    return ((caracter >= '0' && caracter <= '9') || (caracter >= 'A' && caracter <= 'F') ||
+            (caracter >= 'a' && caracter <= 'f') || caracter == '_');
 }
 
 void automata_hexadecimal() {
@@ -80,14 +81,19 @@ void automata_entero() {
 
     if (ultimo_caracter == '.')
         automata_punto_flotante();
+    else if (ultimo_caracter == 'j' || ultimo_caracter == 'J')
+        siguiente_caracter();
 }
 
 void automata_numerico() {
     int caracter_actual = siguiente_caracter();
     columna++;
     switch (caracter_actual) { // Clasificamos los numero segun su 2 caracter
-        case '.':
         case 'e':
+        case 'E':
+            automata_exponente();
+            break;
+        case '.':
             automata_punto_flotante();
             break;
         case 'b':
@@ -202,7 +208,39 @@ ComponenteLexico automata_simbolos(int caracter_anterior) {
     }
 }
 
+bool tiene_comillas_triples(int caracter_inicial) {
+    if (caracter_inicial != '\"')
+        return false;
+
+    int numero_de_comillas = 1;
+    int caracter_actual;
+    while (numero_de_comillas != 3) {
+        caracter_actual = siguiente_caracter();
+        if (caracter_actual != '\"')
+            return false;
+        numero_de_comillas++;
+    }
+    return true;
+}
+
+ComponenteLexico automata_string_triple_comilla() {
+    int numero_de_comillas = 3;
+    int caracter_actual;
+
+    while (numero_de_comillas != 0) {
+        caracter_actual = siguiente_caracter();
+        columna++;
+        if (caracter_actual == '\"')
+            numero_de_comillas--;
+    }
+    return aceptar_lexema();
+}
+
+
 ComponenteLexico automata_string(int caracter_inicial) {
+    if (tiene_comillas_triples(caracter_inicial))
+        return automata_string_triple_comilla();
+
     int caracter_actual = caracter_inicial;
     int caracter_anterior;
 
@@ -256,11 +294,9 @@ ComponenteLexico siguiente_componente_lexico() {
             gestionar_error("Error léxico. Cáracter no reconocido", fila, columna);
             saltar_caracter();
         }
-
     }
 
     retroceder_caracter(); // Se retrocede un caracter para que no quede sin analizar
 
     return aceptar_lexema();
 }
-
