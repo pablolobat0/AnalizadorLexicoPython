@@ -1,5 +1,5 @@
 #include "analizador_sintactico.h"
-#include "analizador_lexico.h"
+#include "../analizador_lexico/analizador_lexico.h"
 #include <stdio.h>
 
 

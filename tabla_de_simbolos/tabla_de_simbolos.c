@@ -1,5 +1,5 @@
 #include "tabla_de_simbolos.h"
-#include "tabla_hash.h"
+#include "../tabla_hash/tabla_hash.h"
 
 typedef TablaHash TablaDeSimbolos;
 

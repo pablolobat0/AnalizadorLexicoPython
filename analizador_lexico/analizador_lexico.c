@@ -4,8 +4,8 @@
 #include <stdbool.h>
 
 #include "analizador_lexico.h"
-#include "sistema_entrada.h"
-#include "gestion_de_errores.h"
+#include "../sistema_de_entrada/sistema_entrada.h"
+#include "../gestion_de_errores/gestion_de_errores.h"
 
 int fila = 1, columna = 1;
 
