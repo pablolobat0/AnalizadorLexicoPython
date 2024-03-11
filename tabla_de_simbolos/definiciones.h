@@ -37,29 +37,34 @@ typedef struct {
 #define WITH 327
 #define YIELD 328
 // Operadores
-#define DOUBLE_SLASH 329
-#define LEFT_SHIFT 330
-#define RIGHT_SHIFT 331
-#define ASSIGMENT 332
-#define LESS_OR_EQUAL 333
-#define GREATER_OR_EQUAL 334
-#define EQUAL_EQUAL 335
-#define NOT_EQUAL 336
+#define DOUBLE_STAR 329 // '**'
+#define DOUBLE_SLASH 330 // '//'
+#define LEFT_SHIFT 331 // '<<'
+#define RIGHT_SHIFT 332 // '>>'
+#define ASSIGMENT 333 // ':='
+#define LESS_OR_EQUAL 334 // '<='
+#define GREATER_OR_EQUAL 335 // '>='
+#define EQUAL_EQUAL 336 // '=='
+#define NOT_EQUAL 337 // '!='
 // Delimitadores
-#define ARROW_OPERATOR 337
-#define PLUS_EQUAL 338
-#define MINUS_EQUAL 339
-#define STAR_EQUAL 340
-#define DIVIDE_EQUAL 341
-#define FLOOR_DIVIDE_EQUAL 342
-#define MODULO_EQUAL 343
-#define AT_EQUAL 344
-#define AND_EQUAL 345
-#define OR_EQUAL 346
-#define XOR_EQUAL 347
-#define RIGHT_SHIFT_EQUAL 348
-#define LEFT_SHIFT_EQUAL 349
-#define DOUBLE_STAR_EQUAL 350
+#define ARROW_OPERATOR 338 // '->'
+#define PLUS_EQUAL 339 // '+='
+#define MINUS_EQUAL 340 // '-='
+#define STAR_EQUAL 341 // '*='
+#define DIVIDE_EQUAL 342 // '/='
+#define FLOOR_DIVIDE_EQUAL 343 // '//='
+#define MODULO_EQUAL 344 // '%='
+#define AT_EQUAL 345 // '@='
+#define AND_EQUAL 346 // '&='
+#define OR_EQUAL 347 // '/='
+#define XOR_EQUAL 348 // '^='
+#define RIGHT_SHIFT_EQUAL 349 // '>>='
+#define LEFT_SHIFT_EQUAL 350 // '<<='
+#define DOUBLE_STAR_EQUAL 351 // '**='
 
+#define INT 352
+#define FLOAT 353
+#define IMAGINARY 354
+#define STRING 355
 
 #endif //INC_01_DEFINICIONES_H
