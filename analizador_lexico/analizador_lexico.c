@@ -126,7 +126,7 @@ void saltar_linea() {
 
 ComponenteLexico aceptar_lexema() {
     ComponenteLexico componente_lexico;
-    componente_lexico.lexema = get_lexema();
+    componente_lexico.lexema = obtener_lexema();
     componente_lexico.componente_lexico = buscar_e_insertar_en_tabla_de_simbolos(componente_lexico.lexema);
 
     return componente_lexico;
@@ -134,7 +134,7 @@ ComponenteLexico aceptar_lexema() {
 
 ComponenteLexico aceptar_lexema_simbolo() {
     ComponenteLexico componente_lexico;
-    componente_lexico.lexema = get_lexema();
+    componente_lexico.lexema = obtener_lexema();
     componente_lexico.componente_lexico = (int) componente_lexico.lexema[0]; // Valor ASCII
 
     return componente_lexico;

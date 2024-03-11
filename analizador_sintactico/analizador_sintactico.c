@@ -11,8 +11,7 @@ void imprimir_componentes_lexicos() {
     } while (componente_lexico.componente_lexico != EOF);
 }
 
-void iniciar_analizador_sintactico(char *nombre_archivo) {
-    iniciar_analizador_lexico(nombre_archivo);
+void iniciar_analizador_sintactico() {
     imprimir_componentes_lexicos();
 }
 
