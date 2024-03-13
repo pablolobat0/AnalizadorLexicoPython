@@ -103,6 +103,16 @@ void insertar(TablaHash *tabla_hash, char *key, int value) {
     tabla_hash->numero_de_items++;
 }
 
+void imprimir_tabla_hash(TablaHash *tabla_hash) {
+    for (int i = 0; i < tabla_hash->capacidad; i++) {
+        HashItem *item = tabla_hash->items[i];
+        while (item != NULL) {
+            printf("%d %s\n", item->value, item->key);
+            item = item->siguiente;
+        }
+    }
+}
+
 int buscar_en_lista(HashItem *item, char *key) {
     while (item != NULL) {
         if (strcmp(item->key, key) == 0)

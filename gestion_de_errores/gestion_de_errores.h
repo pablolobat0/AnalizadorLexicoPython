@@ -1,10 +1,11 @@
-//
-// Created by pablo on 8/03/24.
-//
-
 #ifndef ANALIZADORLEXICOPYTHON_GESTION_DE_ERRORES_H
 #define ANALIZADORLEXICOPYTHON_GESTION_DE_ERRORES_H
 
-void gestionar_error(char* mensaje_error, int fila, int columna);
+#define ERR_NUMERO_DE_ARGUMENTOS_INCORRECTO 1
+#define ERR_FICHERO_NO_ABRE 2
+#define ERR_FICHERO_NO_PYTHON 3
+#define ERR_CARACTER_NO_RECONOCIDO 4
+
+void lanzar_error(int codigo_de_error, int fila, int columna);
 
 #endif //ANALIZADORLEXICOPYTHON_GESTION_DE_ERRORES_H

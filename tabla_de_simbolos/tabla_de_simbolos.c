@@ -54,6 +54,10 @@ int buscar_e_insertar_en_tabla_de_simbolos(char *lexema) {
     return ID;
 }
 
+void imprimir_tabla_de_simbolos() {
+    imprimir_tabla_hash(tabla_de_simbolos);
+}
+
 void destruir_tabla_de_simbolos() {
     destruir_tabla(tabla_de_simbolos);
 }

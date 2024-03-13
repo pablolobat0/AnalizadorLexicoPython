@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "sistema_entrada.h"
+#include "../gestion_de_errores/gestion_de_errores.h"
 
 #define TAM_BUFFER 64
 #define TAM_BLOQUE ((TAM_BUFFER / 2) -1)
@@ -35,7 +36,7 @@ void iniciar_sistema_entrada(char *nombre_archivo) {
 void abrir_archivo_fuente(char *nombre_archivo) {
     archivo_fuente = fopen(nombre_archivo, "r");
     if (archivo_fuente == NULL) {
-        perror("Error al abrir el archivo.\n");
+        lanzar_error(ERR_FICHERO_NO_ABRE, -1, -1);
         exit(EXIT_FAILURE);
     }
 }

@@ -9,6 +9,7 @@
 #include "../gestion_de_errores/gestion_de_errores.h"
 
 int fila = 1, columna = 1;
+ComponenteLexico *componente_lexico;
 
 bool es_hexadecimal(int caracter);
 bool es_posible_operador_delimitador_doble(int caracter);
@@ -37,6 +38,16 @@ ComponenteLexico *retroceder_y_aceptar_lexema(int comp);
 void saltar_linea();
 ComponenteLexico *terminar_analisis_lexico();
 
+
+void iniciar_analizador_lexico() {
+    componente_lexico = (ComponenteLexico*) malloc(sizeof(ComponenteLexico));
+    if (componente_lexico == NULL) {
+        printf("Error al crear el componente lexico\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
 ComponenteLexico *siguiente_componente_lexico() {
     while (true) {
         int caracter_actual = siguiente_caracter();
@@ -63,7 +74,7 @@ ComponenteLexico *siguiente_componente_lexico() {
         } else if (caracter_actual == EOF) {
             return terminar_analisis_lexico();
         } else {
-            gestionar_error("Error léxico. Cáracter no reconocido", fila, columna);
+            lanzar_error(ERR_CARACTER_NO_RECONOCIDO, fila, columna);
             saltar_caracter();
         }
     }
@@ -200,7 +211,7 @@ ComponenteLexico *automata_simbolos(int caracter_anterior) {
             retroceder_caracter();
             return aceptar_lexema(caracter_anterior);
         }
-    } else if (caracter_anterior == '-') { // Es un caso a parte porque puede tener las formas '-=' o '->'
+    } else { // Es un '-', caso a parte porque puede tener las formas '-=' o '->'
         if (caracter_actual == '=' || caracter_actual == '>') {
             return aceptar_lexema_operadores_y_delimitadores();
         } else {
@@ -294,11 +305,6 @@ ComponenteLexico *automata_string_triple_comilla() {
 }
 
 ComponenteLexico *aceptar_lexema_y_buscar_e_insertar_en_tabla_de_simbolos() {
-    ComponenteLexico *componente_lexico = (ComponenteLexico*) malloc(sizeof(ComponenteLexico));
-    if (componente_lexico == NULL) {
-        printf("Error al crear el componente lexico\n");
-        exit(EXIT_FAILURE);
-    }
     componente_lexico->lexema = obtener_lexema();
     componente_lexico->componente_lexico = buscar_e_insertar_en_tabla_de_simbolos(componente_lexico->lexema);
 
@@ -306,11 +312,6 @@ ComponenteLexico *aceptar_lexema_y_buscar_e_insertar_en_tabla_de_simbolos() {
 }
 
 ComponenteLexico *aceptar_lexema(int comp) {
-    ComponenteLexico *componente_lexico = (ComponenteLexico*) malloc(sizeof(ComponenteLexico));
-    if (componente_lexico == NULL) {
-        printf("Error al crear el componente lexico\n");
-        exit(EXIT_FAILURE);
-    }
     componente_lexico->lexema = obtener_lexema();
     componente_lexico->componente_lexico = comp;
 
@@ -323,11 +324,6 @@ ComponenteLexico *retroceder_y_aceptar_lexema(int comp) {
 }
 
 ComponenteLexico *aceptar_lexema_operadores_y_delimitadores() {
-    ComponenteLexico *componente_lexico = (ComponenteLexico*) malloc(sizeof(ComponenteLexico));
-    if (componente_lexico == NULL) {
-        printf("Error al crear el componente lexico\n");
-        exit(EXIT_FAILURE);
-    }
     componente_lexico->lexema = obtener_lexema();
     componente_lexico->componente_lexico = comprobar_operadores_y_delimitadores(componente_lexico->lexema);
 
@@ -382,7 +378,7 @@ int comprobar_operadores_y_delimitadores(char *lexema) {
     else if (strcmp(lexema, "**=") == 0)
         return DOUBLE_STAR_EQUAL;
     else {
-        gestionar_error("Componente léxico no reconocido", fila, columna);
+        lanzar_error(ERR_CARACTER_NO_RECONOCIDO, fila, columna);
         return 0;
     }
 }
@@ -398,11 +394,6 @@ void saltar_linea() {
 }
 
 ComponenteLexico *terminar_analisis_lexico() {
-    ComponenteLexico *componente_lexico = (ComponenteLexico*) malloc(sizeof(ComponenteLexico));
-    if (componente_lexico == NULL) {
-        printf("Error al crear el componente lexico\n");
-        exit(EXIT_FAILURE);
-    }
     componente_lexico->lexema = "Final de fichero";
     componente_lexico->componente_lexico = EOF;
     cerrar_sistema_de_entrada();

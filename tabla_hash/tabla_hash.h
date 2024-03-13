@@ -10,6 +10,8 @@ TablaHash *crear_tabla();
 
 void insertar(TablaHash *tabla_hash, char *key, int value);
 
+void imprimir_tabla_hash(TablaHash *tabla_hash);
+
 int buscar(TablaHash *tabla_hash, char *key);
 
 void destruir_tabla(TablaHash *tabla_hash);
