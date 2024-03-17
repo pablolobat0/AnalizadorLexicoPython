@@ -16,7 +16,6 @@ bool es_posible_operador_delimitador_doble(int caracter);
 bool es_posible_delimitador_triple(int caracter);
 bool es_simbolo_simple(int caracter);
 bool tiene_comillas_triples(int caracter_inicial);
-int comprobar_operadores_y_delimitadores(char *lexema);
 ComponenteLexico *automata_alfanumerico();
 int automata_numero();
 ComponenteLexico *automata_exponente();
@@ -25,15 +24,14 @@ ComponenteLexico *automata_binario();
 ComponenteLexico *automata_octal();
 ComponenteLexico *automata_hexadecimal();
 ComponenteLexico *automata_entero();
-ComponenteLexico *automata_numerico();
-ComponenteLexico *automata_delimitadores_triples(int caracter_actual, int caracter_anterior);
-ComponenteLexico *automata_operadores_delimitadores_dobles(int caracter_actual, int caracter_anterior);
-ComponenteLexico *automata_simbolos(int caracter_anterior);
+ComponenteLexico *automata_numerico(int caracter_actual);
+ComponenteLexico *automata_simbolos(int caracter_actual);
+ComponenteLexico *automata_delimitadores_triples(int caracter_actual);
+ComponenteLexico *automata_operadores_delimitadores_dobles(int caracter_actual);
 ComponenteLexico *automata_string_triple_comilla();
 ComponenteLexico *automata_string(int caracter_inicial);
 ComponenteLexico *aceptar_lexema_y_buscar_e_insertar_en_tabla_de_simbolos();
 ComponenteLexico *aceptar_lexema(int comp);
-ComponenteLexico *aceptar_lexema_operadores_y_delimitadores();
 ComponenteLexico *retroceder_y_aceptar_lexema(int comp);
 void saltar_linea();
 ComponenteLexico *terminar_analisis_lexico();
@@ -55,7 +53,7 @@ ComponenteLexico *siguiente_componente_lexico() {
         if (isalpha(caracter_actual) || caracter_actual == '_') {
             return automata_alfanumerico();
         } else if (isdigit(caracter_actual)) {
-            return automata_numerico();
+            return automata_numerico(caracter_actual);
         } else if (caracter_actual == 32 || caracter_actual == '\t') {
             saltar_caracter();
         } else if (caracter_actual == '\n') {
@@ -91,29 +89,42 @@ ComponenteLexico *automata_alfanumerico() {
     return aceptar_lexema_y_buscar_e_insertar_en_tabla_de_simbolos();
 }
 
-ComponenteLexico *automata_numerico() {
-    int caracter_actual = siguiente_caracter();
-    columna++;
-    switch (caracter_actual) { // Clasificamos los numero segun su 2 caracter
-        case 'e':
-        case 'E':
-            return automata_exponente();
-        case '.':
-            return automata_punto_flotante();
-        case 'b':
-        case 'B':
-            return automata_binario();
-        case 'o':
-        case 'O':
-            return automata_octal();
-        case 'x':
-        case 'X':
-            return automata_hexadecimal();
-        default:
-            if (isdigit(caracter_actual))
-                return automata_entero();
+ComponenteLexico *automata_numerico(int caracter_actual) {
+    if (caracter_actual == '0') {
+        caracter_actual = siguiente_caracter();
+        columna++;
+        switch (caracter_actual) { // Clasificamos los numero segun su 2 caracter
+            case 'e':
+            case 'E':
+                return automata_exponente();
+            case '.':
+                return automata_punto_flotante();
+            case 'b':
+            case 'B':
+                return automata_binario();
+            case 'o':
+            case 'O':
+                return automata_octal();
+            case 'x':
+            case 'X':
+                return automata_hexadecimal();
+            default:
+                return retroceder_y_aceptar_lexema(INT);
+        }
+    } else {
+        caracter_actual = siguiente_caracter();
+        columna++;
+        switch (caracter_actual) { // Clasificamos los numero segun su 2 caracter
+            case 'e':
+            case 'E':
+                return automata_exponente();
+            case '.':
+                return automata_punto_flotante();
+            default:
+                if (isdigit(caracter_actual))
+                    return automata_entero();
+        }
     }
-
     return retroceder_y_aceptar_lexema(INT);
 }
 
@@ -194,29 +205,21 @@ ComponenteLexico *automata_entero() {
 // Entiendase simple como los que tienen la forma '{' solo
 bool es_simbolo_simple(int caracter) {
     return (caracter == ';' || caracter == ',' || caracter == '[' || caracter == ']' || caracter == '(' ||
-            caracter == ')' || caracter == '{' || caracter == '}');
+            caracter == ')' || caracter == '{' || caracter == '}' || caracter == '~');
 }
 
-ComponenteLexico *automata_simbolos(int caracter_anterior) {
-    int caracter_actual = siguiente_caracter();
-
-    if (es_posible_delimitador_triple(caracter_anterior)) {
-        return automata_delimitadores_triples(caracter_actual, caracter_anterior);
-    } else if (es_posible_operador_delimitador_doble(caracter_anterior)) {
-        return automata_operadores_delimitadores_dobles(caracter_actual, caracter_anterior);
-    } else if (caracter_anterior == '.') {
+ComponenteLexico *automata_simbolos(int caracter_actual) {
+    if (es_posible_delimitador_triple(caracter_actual)) {
+        return automata_delimitadores_triples(caracter_actual);
+    } else if (es_posible_operador_delimitador_doble(caracter_actual)) {
+        return automata_operadores_delimitadores_dobles(caracter_actual);
+    } else { // Es un '.', caso a parte porque puede ser un float
+        caracter_actual = siguiente_caracter();
         if (isdigit(caracter_actual)) {
             return automata_punto_flotante();
         } else {
             retroceder_caracter();
-            return aceptar_lexema(caracter_anterior);
-        }
-    } else { // Es un '-', caso a parte porque puede tener las formas '-=' o '->'
-        if (caracter_actual == '=' || caracter_actual == '>') {
-            return aceptar_lexema_operadores_y_delimitadores();
-        } else {
-            retroceder_caracter();
-            return aceptar_lexema(caracter_anterior);
+            return aceptar_lexema(caracter_actual);
         }
     }
 }
@@ -226,34 +229,194 @@ bool es_posible_delimitador_triple(int caracter) {
     return (caracter == '/' || caracter == '*' || caracter == '<' || caracter == '>');
 }
 
-ComponenteLexico *automata_delimitadores_triples(int caracter_actual, int caracter_anterior) {
-    if (caracter_actual == '=') { // Forma '*'
-        return aceptar_lexema_operadores_y_delimitadores();
-    } else if (caracter_anterior == caracter_actual) {
-        if (siguiente_caracter() == '=') { // Forma '**='
-            return aceptar_lexema_operadores_y_delimitadores();
-        } else { // Forma '**'
-            retroceder_caracter();
-            return aceptar_lexema_operadores_y_delimitadores();
+ComponenteLexico *automata_delimitadores_triples(int caracter_actual) {
+    int estado = 0;
+    switch (caracter_actual) {
+        case '/':
+            estado = 1;
+            break;
+        case '*':
+            estado = 2;
+            break;
+        case '<':
+            estado = 3;
+            break;
+        case '>':
+            estado = 4;
+            break;
+        default:
+            lanzar_error(ERR_CARACTER_NO_RECONOCIDO, fila, columna);
+            saltar_caracter();
+    }
+    while (true) {
+        caracter_actual = siguiente_caracter();
+        switch (estado) {
+            case 1:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(DIVIDE_EQUAL);
+                else if (caracter_actual == '/')
+                    estado = 5;
+                else
+                    return retroceder_y_aceptar_lexema('/');
+                break;
+            case 2:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(STAR_EQUAL);
+                else if (caracter_actual == '*')
+                    estado = 6;
+                else
+                    return retroceder_y_aceptar_lexema('*');
+                break;
+            case 3:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(LESS_OR_EQUAL);
+                else if (caracter_actual == '<')
+                    estado = 7;
+                else
+                    return retroceder_y_aceptar_lexema('<');
+                break;
+            case 4:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(GREATER_OR_EQUAL);
+                else if (caracter_actual == '>')
+                    estado = 8;
+                else
+                    return retroceder_y_aceptar_lexema('>');
+                break;
+            case 5:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(FLOOR_DIVIDE_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema(DOUBLE_SLASH);
+            case 6:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(DOUBLE_STAR_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema(DOUBLE_STAR);
+            case 7:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(LEFT_SHIFT_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema(LEFT_SHIFT);
+            case 8:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(RIGHT_SHIFT_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema(RIGHT_SHIFT);
+            default:
+                lanzar_error(ERR_CARACTER_NO_RECONOCIDO, fila, columna);
+                saltar_caracter();
         }
-    } else { // Forma '*'
-        retroceder_caracter();
-        return aceptar_lexema(caracter_anterior);
     }
 }
 
 // Entiendase doble los que pueden ser de la forma '&' o '&='
 bool es_posible_operador_delimitador_doble(int caracter) {
-    return (caracter == ':' || caracter == '=' || caracter == '!' || caracter == '+' || caracter == '%' ||
+    return (caracter == ':' || caracter == '=' || caracter == '!' || caracter == '+' || caracter == '-' || caracter == '%' ||
             caracter == '@' || caracter == '&' || caracter == '|' || caracter == '^');
 }
 
-ComponenteLexico *automata_operadores_delimitadores_dobles(int caracter_actual, int caracter_anterior) {
-    if (caracter_actual == '=') { // Forma '&='
-        return aceptar_lexema_operadores_y_delimitadores();
-    } else { // Forma '&'
-        retroceder_caracter();
-        return aceptar_lexema(caracter_anterior);
+ComponenteLexico *automata_operadores_delimitadores_dobles(int caracter_actual) {
+    int estado = 0;
+    switch (caracter_actual) {
+        case ':':
+            estado = 1;
+            break;
+        case '=':
+            estado = 2;
+            break;
+        case '!':
+            estado = 3;
+            break;
+        case '+':
+            estado = 4;
+            break;
+        case '-':
+            estado = 5;
+            break;
+        case '%':
+            estado = 6;
+            break;
+        case '@':
+            estado = 7;
+            break;
+        case '&':
+            estado = 8;
+            break;
+        case '|':
+            estado = 9;
+            break;
+        case '^':
+            estado = 10;
+            break;
+        default:
+            lanzar_error(ERR_CARACTER_NO_RECONOCIDO, fila, columna);
+            saltar_caracter();
+    }
+
+    while (true) {
+        caracter_actual = siguiente_caracter();
+        switch (estado) {
+            case 1:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(ASSIGMENT);
+                else
+                    return retroceder_y_aceptar_lexema(':');
+            case 2:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(EQUAL_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('=');
+            case 3:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(NOT_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('!');
+            case 4:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(PLUS_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('+');
+            case 5:
+                if (caracter_actual == '=' ) {
+                    return aceptar_lexema(MINUS_EQUAL);
+                }
+                else if (caracter_actual == '>') {
+                    return aceptar_lexema(ARROW_OPERATOR);
+                }
+                else {
+                    retroceder_caracter();
+                    return aceptar_lexema('-');
+                }
+            case 6:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(MODULO_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('%');
+            case 7:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(AT_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('@');
+            case 8:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(AND_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('&');
+            case 9:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(OR_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('|');
+            case 10:
+                if (caracter_actual == '=')
+                    return aceptar_lexema(XOR_EQUAL);
+                else
+                    return retroceder_y_aceptar_lexema('^');
+            default:
+                lanzar_error(ERR_CARACTER_NO_RECONOCIDO, fila, columna);
+                saltar_caracter();
+        }
     }
 }
 
@@ -321,66 +484,6 @@ ComponenteLexico *aceptar_lexema(int comp) {
 ComponenteLexico *retroceder_y_aceptar_lexema(int comp) {
     retroceder_caracter();
     return aceptar_lexema(comp);
-}
-
-ComponenteLexico *aceptar_lexema_operadores_y_delimitadores() {
-    componente_lexico->lexema = obtener_lexema();
-    componente_lexico->componente_lexico = comprobar_operadores_y_delimitadores(componente_lexico->lexema);
-
-    return componente_lexico;
-}
-
-int comprobar_operadores_y_delimitadores(char *lexema) {
-    if (strcmp(lexema, "**") == 0)
-        return DOUBLE_STAR;
-    else if (strcmp(lexema, "//") == 0)
-        return DOUBLE_SLASH;
-    else if (strcmp(lexema, "<<") == 0)
-        return LEFT_SHIFT;
-    else if (strcmp(lexema, ">>") == 0)
-        return RIGHT_SHIFT;
-    else if (strcmp(lexema, ":=") == 0)
-        return ASSIGMENT;
-    else if (strcmp(lexema, "<=") == 0)
-        return LESS_OR_EQUAL;
-    else if (strcmp(lexema, ">=") == 0)
-        return GREATER_OR_EQUAL;
-    else if (strcmp(lexema, "==") == 0)
-        return NOT_EQUAL;
-    else if (strcmp(lexema, "!=") == 0)
-        return EQUAL_EQUAL;
-    else if (strcmp(lexema, "->") == 0)
-        return ARROW_OPERATOR;
-    else if (strcmp(lexema, "+=") == 0)
-        return PLUS_EQUAL;
-    else if (strcmp(lexema, "-=") == 0)
-        return MINUS_EQUAL;
-    else if (strcmp(lexema, "*=") == 0)
-        return STAR_EQUAL;
-    else if (strcmp(lexema, "/=") == 0)
-        return DIVIDE_EQUAL;
-    else if (strcmp(lexema, "//=") == 0)
-        return FLOOR_DIVIDE_EQUAL;
-    else if (strcmp(lexema, "%=") == 0)
-        return MODULO_EQUAL;
-    else if (strcmp(lexema, "@=") == 0)
-        return AT_EQUAL;
-    else if (strcmp(lexema, "&=") == 0)
-        return AND_EQUAL;
-    else if (strcmp(lexema, "|=") == 0)
-        return OR_EQUAL;
-    else if (strcmp(lexema, "^=") == 0)
-        return XOR_EQUAL;
-    else if (strcmp(lexema, ">>=") == 0)
-        return RIGHT_SHIFT_EQUAL;
-    else if (strcmp(lexema, "<<=") == 0)
-        return LEFT_SHIFT_EQUAL;
-    else if (strcmp(lexema, "**=") == 0)
-        return DOUBLE_STAR_EQUAL;
-    else {
-        lanzar_error(ERR_CARACTER_NO_RECONOCIDO, fila, columna);
-        return 0;
-    }
 }
 
 void saltar_linea() {
