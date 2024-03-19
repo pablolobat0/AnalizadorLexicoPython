@@ -8,4 +8,6 @@ void iniciar_analizador_lexico();
 
 ComponenteLexico *siguiente_componente_lexico();
 
+void informar_superacion_tamano_maximo_lexema();
+
 #endif //INC_01_ANALIZADOR_LEXICO_H

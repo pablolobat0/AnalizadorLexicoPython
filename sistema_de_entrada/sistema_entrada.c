@@ -4,9 +4,12 @@
 #include <stdbool.h>
 #include "sistema_entrada.h"
 #include "../gestion_de_errores/gestion_de_errores.h"
+#include "../analizador_lexico/analizador_lexico.h"
 
 #define TAM_BUFFER 64
 #define TAM_BLOQUE ((TAM_BUFFER / 2) -1)
+
+bool tamano_maximo_de_lexema_excedido = false;
 
 typedef struct {
     char buffer[TAM_BUFFER];
@@ -68,6 +71,10 @@ int siguiente_caracter() {
 }
 
 int comprobar_posicion_delantero() {
+    if (calcular_longitud_lexema() >= TAM_BLOQUE && !tamano_maximo_de_lexema_excedido) {
+        tamano_maximo_de_lexema_excedido = true;
+        informar_superacion_tamano_maximo_lexema();
+    }
     switch (buffer.delantero) {
         case TAM_BLOQUE: // Final bloque A
             return cargar_bloque_y_mover_delantero(TAM_BLOQUE + 1, TAM_BLOQUE - 1, TAM_BUFFER / 2);
@@ -157,6 +164,10 @@ void retroceder_caracter() {
 
 void saltar_caracter() {
     buffer.inicio = buffer.delantero;
+}
+
+void informar_lexema_mayor_tamano_maximo_procesado() {
+    tamano_maximo_de_lexema_excedido = false;
 }
 
 void cerrar_sistema_de_entrada() {

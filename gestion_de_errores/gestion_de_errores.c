@@ -17,7 +17,10 @@ void lanzar_error(int codigo_de_error, int fila, int columna) {
             printf("ERROR: El archivo de código fuente no es un archivo de Python válido. Uso: ./ejecutable archivo.py\n");
             break;
             case ERR_CARACTER_NO_RECONOCIDO:
-            printf("Error en la fila %d y en la columna %d: Carácter no reconocido.\n", fila, columna);
+            printf("Error en la fila %d, columna %d: Carácter no reconocido.\n", fila, columna);
+            break;
+        case ERR_TAMANO_MAXIMO_DE_LEXEMA_EXCEDIDO:
+            printf("Error en la fila %d, la columna %d: Tamaño máximo de lexema excedido.\n", fila, columna);
             break;
     }
 }

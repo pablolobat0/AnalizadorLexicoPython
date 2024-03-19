@@ -33,6 +33,11 @@ void retroceder_caracter();
 void saltar_caracter();
 
 /**
+ * Informa al sistema de entrada que el lexema que había excedido el tamaño máximo ya ha sido procesado
+ */
+void informar_lexema_mayor_tamano_maximo_procesado();
+
+/**
  * Cierra el sistema de entrada y el archivo asociado.
  */
 void cerrar_sistema_de_entrada();

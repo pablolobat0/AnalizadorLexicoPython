@@ -12,6 +12,7 @@ void imprimir_componentes_lexicos() {
         liberar_memoria_lexema(componente_lexico);
         componente_lexico = siguiente_componente_lexico();
     }
+    printf("%s\n", componente_lexico->lexema);
     free(componente_lexico);
 }
 

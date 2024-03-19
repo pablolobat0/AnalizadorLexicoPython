@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "stdlib.h"
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
@@ -9,6 +9,9 @@
 #include "../gestion_de_errores/gestion_de_errores.h"
 
 int fila = 1, columna = 1;
+bool introducir_en_tabla_de_simoblos;
+bool tam_maximo_de_lexema_excedido = false;
+bool enviar_al_analizador_sintactico;
 ComponenteLexico *componente_lexico;
 
 bool es_hexadecimal(int caracter);
@@ -30,9 +33,10 @@ ComponenteLexico *automata_delimitadores_triples(int caracter_actual);
 ComponenteLexico *automata_operadores_delimitadores_dobles(int caracter_actual);
 ComponenteLexico *automata_string_triple_comilla();
 ComponenteLexico *automata_string(int caracter_inicial);
+ComponenteLexico *retroceder_y_aceptar_lexema(int comp);
 ComponenteLexico *aceptar_lexema_y_buscar_e_insertar_en_tabla_de_simbolos();
 ComponenteLexico *aceptar_lexema(int comp);
-ComponenteLexico *retroceder_y_aceptar_lexema(int comp);
+ComponenteLexico *aceptar_lexema_que_ha_excedido_el_tamano_maximo();
 void saltar_linea();
 ComponenteLexico *terminar_analisis_lexico();
 
@@ -47,10 +51,13 @@ void iniciar_analizador_lexico() {
 
 
 ComponenteLexico *siguiente_componente_lexico() {
+    introducir_en_tabla_de_simoblos = false;
+    enviar_al_analizador_sintactico = true;
     while (true) {
         int caracter_actual = siguiente_caracter();
         columna++;
         if (isalpha(caracter_actual) || caracter_actual == '_') {
+            introducir_en_tabla_de_simoblos = true;
             return automata_alfanumerico();
         } else if (isdigit(caracter_actual)) {
             return automata_numerico(caracter_actual);
@@ -68,6 +75,7 @@ ComponenteLexico *siguiente_componente_lexico() {
         } else if (caracter_actual == '\'' || caracter_actual == '\"') {
             return automata_string(caracter_actual);
         } else if (caracter_actual == '#') {
+            enviar_al_analizador_sintactico = false;
             saltar_linea();
         } else if (caracter_actual == EOF) {
             return terminar_analisis_lexico();
@@ -467,7 +475,16 @@ ComponenteLexico *automata_string_triple_comilla() {
     return aceptar_lexema(STRING);
 }
 
+ComponenteLexico *retroceder_y_aceptar_lexema(int comp) {
+    retroceder_caracter();
+    return aceptar_lexema(comp);
+}
+
 ComponenteLexico *aceptar_lexema_y_buscar_e_insertar_en_tabla_de_simbolos() {
+    if (tam_maximo_de_lexema_excedido) {
+        return aceptar_lexema_que_ha_excedido_el_tamano_maximo();
+    }
+
     componente_lexico->lexema = obtener_lexema();
     componente_lexico->componente_lexico = buscar_e_insertar_en_tabla_de_simbolos(componente_lexico->lexema);
 
@@ -475,15 +492,20 @@ ComponenteLexico *aceptar_lexema_y_buscar_e_insertar_en_tabla_de_simbolos() {
 }
 
 ComponenteLexico *aceptar_lexema(int comp) {
-    componente_lexico->lexema = obtener_lexema();
     componente_lexico->componente_lexico = comp;
+    if (tam_maximo_de_lexema_excedido) {
+        return aceptar_lexema_que_ha_excedido_el_tamano_maximo();
+    }
+    componente_lexico->lexema = obtener_lexema();
 
     return componente_lexico;
 }
 
-ComponenteLexico *retroceder_y_aceptar_lexema(int comp) {
-    retroceder_caracter();
-    return aceptar_lexema(comp);
+ComponenteLexico *aceptar_lexema_que_ha_excedido_el_tamano_maximo() {
+    saltar_caracter();
+    tam_maximo_de_lexema_excedido = false;
+    informar_lexema_mayor_tamano_maximo_procesado();
+    return componente_lexico;
 }
 
 void saltar_linea() {
@@ -496,10 +518,21 @@ void saltar_linea() {
     saltar_caracter(); // Borramos el buffer
 }
 
+void informar_superacion_tamano_maximo_lexema() {
+    if (enviar_al_analizador_sintactico) {
+        lanzar_error(ERR_TAMANO_MAXIMO_DE_LEXEMA_EXCEDIDO, 0, 0);
+        componente_lexico->lexema = obtener_lexema();
+        tam_maximo_de_lexema_excedido = true;
+        if (introducir_en_tabla_de_simoblos) {
+            componente_lexico->componente_lexico = ID;
+            buscar_e_insertar_en_tabla_de_simbolos(componente_lexico->lexema);
+        }
+    }
+}
+
 ComponenteLexico *terminar_analisis_lexico() {
     componente_lexico->lexema = "Final de fichero";
     componente_lexico->componente_lexico = EOF;
     cerrar_sistema_de_entrada();
     return componente_lexico;
 }
-
