@@ -4,7 +4,7 @@
 
 #include "tabla_hash.h"
 
-#define TAMANO_INICIAL_TABLA 5003
+#define TAMANO_INICIAL_TABLA 137 // Numero primo para el tamano
 
 typedef struct HashItem {
     char *key;
@@ -18,7 +18,7 @@ struct TablaHash {
 };
 
 
-TablaHash *_crear_tabla(int tamano) {
+TablaHash *crear_tabla_con_tamano(int tamano) {
     TablaHash *tabla_hash = (TablaHash *) malloc(sizeof(TablaHash));
     if (tabla_hash == NULL) {
         printf("Error al crear la tabla hash\n");
@@ -38,40 +38,51 @@ TablaHash *_crear_tabla(int tamano) {
 }
 
 TablaHash *crear_tabla() {
-    return _crear_tabla(TAMANO_INICIAL_TABLA);
+    return crear_tabla_con_tamano(TAMANO_INICIAL_TABLA);
 }
 
 
+// Fuente: https://github.com/aappleby/smhasher/blob/master/src/Hashes.cpp
 unsigned int funcion_hash(char *key, int tamano) {
-    unsigned int hash = 5381;  // Un número primo inicial
-
-    while (*key) {
-        hash = (hash << 5) + *key++;  // Desplazamiento a la izquierda y suma
+    unsigned long hash = 5381; // Numero primo para favorecer redispersion
+    for (; *key; ++key) {
+        hash ^= *key;
+        hash *= 0x5bd1e995; // Factor de mezcla
+        hash ^= hash >> 15;
     }
-
     return hash % tamano;
 }
 
-void redispersar(TablaHash *tabla_hash) {
-    TablaHash *nueva_tabla = _crear_tabla((tabla_hash->capacidad * 2)); // Doblamos el tamano
+void redispersar(TablaHash *tabla_hash_original) {
+    TablaHash *nueva_tabla = crear_tabla_con_tamano((tabla_hash_original->capacidad * 2)); // Doblamos el tamano
 
-    for (int i = 0; i < tabla_hash->capacidad; i++) {
-        HashItem *item = tabla_hash->items[i];
+    // Trasladamos los elementos de la tabla original a la nueva tabla
+    for (int i = 0; i < tabla_hash_original->capacidad; i++) {
+        HashItem *item = tabla_hash_original->items[i];
         while (item != NULL) {
-            insertar(nueva_tabla, item->key, item->value);
-            item = item->siguiente;
+            HashItem *aux = item;
+            item = aux->siguiente;
+            insertar(nueva_tabla, aux->key, aux->value);
+            if (aux->key != NULL)
+                free(aux->key);
+            free(aux);
         }
     }
 
-    free(tabla_hash->items);
-    tabla_hash->items = nueva_tabla->items;
-    tabla_hash->capacidad = nueva_tabla->capacidad;
+    // Se asignan los elementos redispersos a la tabla original y se libera la nueva
+    free(tabla_hash_original->items);
+    tabla_hash_original->items = nueva_tabla->items;
+    tabla_hash_original->capacidad = nueva_tabla->capacidad;
 
     free(nueva_tabla);
 }
 
 void insertar(TablaHash *tabla_hash, char *key, int value) {
     unsigned int index = funcion_hash(key, tabla_hash->capacidad);
+
+    if (tabla_hash->numero_de_items >= tabla_hash->capacidad / 2) { // Se redispersa si se excede el factor de carga
+        redispersar(tabla_hash);
+    }
 
     HashItem *nuevo_hash_item = (HashItem *) malloc(sizeof(HashItem));
     if (nuevo_hash_item == NULL) {
@@ -86,16 +97,12 @@ void insertar(TablaHash *tabla_hash, char *key, int value) {
         exit(EXIT_FAILURE);
     }
 
-    if (tabla_hash->numero_de_items >= tabla_hash->capacidad / 2) {
-        redispersar(tabla_hash);
-    }
-
     nuevo_hash_item->value = value;
 
-    if (tabla_hash->items[index] == NULL) {
+    if (tabla_hash->items[index] == NULL) { // No hay ningún elemento en la posición
         tabla_hash->items[index] = nuevo_hash_item;
         nuevo_hash_item->siguiente = NULL;
-    } else {
+    } else { // Si hay un elemento en la posición se coloca como primero de la lista
         nuevo_hash_item->siguiente = tabla_hash->items[index];
         tabla_hash->items[index] = nuevo_hash_item;
     }

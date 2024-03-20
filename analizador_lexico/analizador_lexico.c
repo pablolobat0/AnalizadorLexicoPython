@@ -658,6 +658,5 @@ void informar_superacion_tamano_maximo_lexema() {
 ComponenteLexico *terminar_analisis_lexico() {
     componente_lexico->lexema = "Final de fichero";
     componente_lexico->componente_lexico = EOF;
-    cerrar_sistema_de_entrada();
     return componente_lexico;
 }
