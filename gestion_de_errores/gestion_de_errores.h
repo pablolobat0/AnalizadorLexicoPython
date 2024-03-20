@@ -6,6 +6,7 @@
 #define ERR_FICHERO_NO_PYTHON 3
 #define ERR_CARACTER_NO_RECONOCIDO 4
 #define ERR_TAMANO_MAXIMO_DE_LEXEMA_EXCEDIDO 5
+#define ERR_STRING_LITERAL_MAL_FORMADO 6
 
 void lanzar_error(int codigo_de_error, int fila, int columna);
 

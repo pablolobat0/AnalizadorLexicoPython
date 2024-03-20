@@ -153,7 +153,7 @@ void crear_lexema(char *lexema, int longitud) {
 
 void retroceder_caracter() {
     buffer.delantero--;
-    if (buffer.buffer[buffer.delantero] == EOF) {
+    if (buffer.delantero == TAM_BLOQUE) {
         buffer.delantero--;
         buffer.ha_retrocedido_de_otro_bloque = true;
     } else if (buffer.delantero < 0) {
