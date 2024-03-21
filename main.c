@@ -5,8 +5,8 @@
 
 #include "tabla_de_simbolos/tabla_de_simbolos.h"
 #include "analizador_sintactico/analizador_sintactico.h"
-#include "sistema_de_entrada/sistema_entrada.h"
 #include "gestion_de_errores/gestion_de_errores.h"
+#include "lex.yy.h"
 
 bool es_fichero_python(char *nombre_fichero);
 
@@ -19,8 +19,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-
-    iniciar_sistema_entrada(argv[1]);
+    abrir_archivo_fuente(argv[1]);
     crear_tabla_de_simbolos();
     printf("Contenido de la tabla de símbolos después de su inicializacióon:\n");
     imprimir_tabla_de_simbolos();
@@ -28,7 +27,6 @@ int main(int argc, char **argv) {
     iniciar_analizador_sintactico();
     printf("\nContenido de la tabla de símbolos después del análisis léxico:\n");
     imprimir_tabla_de_simbolos();
-    cerrar_sistema_de_entrada();
     destruir_tabla_de_simbolos();
 }
 
