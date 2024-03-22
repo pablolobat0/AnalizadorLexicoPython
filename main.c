@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     printf("\nContenido de la tabla de símbolos después del análisis léxico:\n");
     imprimir_tabla_de_simbolos();
     destruir_tabla_de_simbolos();
+    cerrar();
 }
 
 bool es_fichero_python(char *nombre_fichero) {
