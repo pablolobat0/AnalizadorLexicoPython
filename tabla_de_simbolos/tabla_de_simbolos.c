@@ -39,7 +39,7 @@ void crear_tabla_de_simbolos() {
             {"yield",    YIELD},
     };
 
-    for (int i = 0; i < (sizeof(palabras_clave) / sizeof(ComponenteLexico)); i++) {
+    for (long unsigned int i = 0; i < (sizeof(palabras_clave) / sizeof(ComponenteLexico)); i++) {
         insertar(tabla_de_simbolos, palabras_clave[i].lexema, palabras_clave[i].componente_lexico);
     }
 }

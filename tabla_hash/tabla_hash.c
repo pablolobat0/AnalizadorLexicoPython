@@ -80,7 +80,7 @@ void redispersar(TablaHash *tabla_hash_original) {
 void insertar(TablaHash *tabla_hash, char *key, int value) {
     unsigned int index = funcion_hash(key, tabla_hash->capacidad);
 
-    if (tabla_hash->numero_de_items >= tabla_hash->capacidad / 2) { // Se redispersa si se excede el factor de carga
+    if (tabla_hash->numero_de_items >= tabla_hash->capacidad * 0.7) { // Se redispersa si se excede el factor de carga
         redispersar(tabla_hash);
     }
 
@@ -114,9 +114,10 @@ void imprimir_tabla_hash(TablaHash *tabla_hash) {
     for (int i = 0; i < tabla_hash->capacidad; i++) {
         HashItem *item = tabla_hash->items[i];
         while (item != NULL) {
-            printf("%d %s\n", item->value, item->key);
+            printf("%d %s -> ", item->value, item->key);
             item = item->siguiente;
         }
+        printf("- \n");
     }
 }
 

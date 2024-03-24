@@ -154,6 +154,7 @@ ComponenteLexico *automata_alfanumerico() {
 
 ComponenteLexico *automata_numeros_que_empiezan_por_cero() {
     int caracter_actual = siguiente_caracter();
+    int estado = GUION_BAJO_ENCONTRADO;
     columna++;
     switch (caracter_actual) { // Clasificamos los numero segun su 2 caracter
         case 'e':
@@ -170,6 +171,21 @@ ComponenteLexico *automata_numeros_que_empiezan_por_cero() {
         case 'x':
         case 'X':
             return automata_hexadecimal();
+        case '_':
+        case '0':
+            do {
+                caracter_actual = siguiente_caracter();
+                if (caracter_actual == '0' && (estado == GUION_BAJO_ENCONTRADO || estado == 0))
+                    estado = 0;
+                else if (caracter_actual == '_' && estado == 0)
+                    estado = GUION_BAJO_ENCONTRADO;
+                else if (estado == GUION_BAJO_ENCONTRADO) {
+                    retroceder_caracter(); // Un numero no puede acabar en '_'
+                    return retroceder_y_aceptar_lexema(INT);
+                } else {
+                    return retroceder_y_aceptar_lexema(INT);
+                }
+            } while (true);
         default:
             return retroceder_y_aceptar_lexema(INT);
     }
