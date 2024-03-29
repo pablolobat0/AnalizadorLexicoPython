@@ -53,6 +53,7 @@ unsigned int funcion_hash(char *key, int tamano) {
     return hash % tamano;
 }
 
+// Dobla la capacidad de la tabla hash y redispersa sus elementos
 void redispersar(TablaHash *tabla_hash_original) {
     TablaHash *nueva_tabla = crear_tabla_con_tamano((tabla_hash_original->capacidad * 2)); // Doblamos el tamano
 

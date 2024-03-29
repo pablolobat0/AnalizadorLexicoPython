@@ -21,13 +21,21 @@ Buffer buffer;
 FILE *archivo_fuente;
 
 void abrir_archivo_fuente(char *nombre_archivo);
+
 void inicializar_buffer();
+
 size_t cargar_bloque(char *bloque);
+
 int comprobar_posicion_delantero();
+
 int cargar_bloque_y_mover_delantero(int nueva_posicion_delantero, int posicion_a_devolver, int desplazamiento_buffer);
+
 bool comprobar_retroceso_otro_bloque(int nueva_posicion_delantero);
+
 void comprobar_elementos_leidos(size_t elementos_leidos, int desplazamiento_buffer);
+
 int calcular_longitud_lexema();
+
 void crear_lexema(char *lexema, int longitud);
 
 
@@ -46,7 +54,7 @@ void abrir_archivo_fuente(char *nombre_archivo) {
 
 void inicializar_buffer() {
     size_t elementos_leidos = cargar_bloque(buffer.buffer);
-    if (elementos_leidos < TAM_BLOQUE) {
+    if (elementos_leidos < TAM_BLOQUE) { // Se indica el final del archivo en el buffer
         buffer.buffer[elementos_leidos] = EOF;
     }
 
@@ -70,6 +78,7 @@ int siguiente_caracter() {
     return buffer.buffer[buffer.delantero - 1];
 }
 
+// Comprueba si delantero llegó al final de un bloque o al final del archivo
 int comprobar_posicion_delantero() {
     if (calcular_longitud_lexema() >= TAM_BLOQUE && !tamano_maximo_de_lexema_excedido) {
         tamano_maximo_de_lexema_excedido = true;
@@ -115,6 +124,11 @@ void comprobar_elementos_leidos(size_t elementos_leidos, int desplazamiento_buff
 char *obtener_lexema() {
     // Reservamos memoria para el lexema y el \0 final
     int longitud = calcular_longitud_lexema();
+    
+    if (longitud > TAM_BLOQUE) {
+        lanzar_error(ERR_TAMANO_MAXIMO_DE_LEXEMA_EXCEDIDO, get_fila(), get_columna());
+        longitud = TAM_BLOQUE;
+    }
 
     char *lexema = (char *) malloc(sizeof(char) * (longitud + 1));
     if (lexema == NULL) {
@@ -129,12 +143,10 @@ char *obtener_lexema() {
 int calcular_longitud_lexema() {
     if (buffer.inicio > buffer.delantero) {
         return TAM_BUFFER - 1 - buffer.inicio + buffer.delantero;
-    } else {
-        if (buffer.delantero > TAM_BLOQUE && buffer.inicio < TAM_BLOQUE) {
+    } else if (buffer.delantero > TAM_BLOQUE && buffer.inicio < TAM_BLOQUE) {
             return buffer.delantero - buffer.inicio - 1;
-        } else {
+    } else {
             return buffer.delantero - buffer.inicio;
-        }
     }
 }
 

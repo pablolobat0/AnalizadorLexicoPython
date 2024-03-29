@@ -50,6 +50,14 @@ ComponenteLexico *automata_punto_flotante();
 
 ComponenteLexico *automata_entero(int estado);
 
+/**
+ * Evalúa una cadena de entrada para determinar si representa un número válido.
+ * Este automata de estados finitos (AFD) acepta números enteros sin signo, es decir,
+ * secuencias de dígitos que representan números naturales.
+ *
+ * @param estado El estado actual del autómata, indica si es un número o un '_'.
+ * @return El último carácter que se ha leído
+ */
 int automata_numero(int estado);
 
 bool comprobar_si_acaba_en_guion_bajo(int estado);
@@ -119,6 +127,7 @@ ComponenteLexico *siguiente_componente_lexico() {
         } else if (caracter_actual == '\'') {
             return automata_string(caracter_actual);
         } else if (caracter_actual == '\"') {
+            // Comprobamos si es un string literal con """ o con "
             caracter_actual = siguiente_caracter();
             if (caracter_actual != '\"')
                 return automata_string('\"');
@@ -156,7 +165,7 @@ ComponenteLexico *automata_numeros_que_empiezan_por_cero() {
     int caracter_actual = siguiente_caracter();
     int estado = GUION_BAJO_ENCONTRADO;
     columna++;
-    switch (caracter_actual) { // Clasificamos los numero segun su 2 caracter
+    switch (caracter_actual) { // Clasificamos los numeros segun su 2 caracter
         case 'e':
         case 'E':
             return automata_exponente();
@@ -175,7 +184,8 @@ ComponenteLexico *automata_numeros_que_empiezan_por_cero() {
         case '0':
             do {
                 caracter_actual = siguiente_caracter();
-                if (caracter_actual == '0' && (estado == GUION_BAJO_ENCONTRADO || estado == 0))
+                columna++;
+                if (caracter_actual == '0')
                     estado = 0;
                 else if (caracter_actual == '_' && estado == 0)
                     estado = GUION_BAJO_ENCONTRADO;
@@ -197,6 +207,7 @@ ComponenteLexico *automata_binario() {
 
     while (true) {
         caracter_actual = siguiente_caracter();
+        columna++;
         if (caracter_actual == '1' || caracter_actual == '0') {
             estado = DIGITO_ENCONTRADO;
         } else if (caracter_actual == '_' && estado == DIGITO_ENCONTRADO) {
@@ -219,6 +230,7 @@ ComponenteLexico *automata_octal() {
 
     while (true) {
         caracter_actual = siguiente_caracter();
+        columna++;
         if (caracter_actual >= '0' && caracter_actual <= '7') {
             estado = DIGITO_ENCONTRADO;
         } else if (caracter_actual == '_' && estado == DIGITO_ENCONTRADO) {
@@ -241,6 +253,7 @@ ComponenteLexico *automata_hexadecimal() {
 
     while (true) {
         caracter_actual = siguiente_caracter();
+        columna++;
         if (es_hexadecimal(caracter_actual)) {
             estado = DIGITO_ENCONTRADO;
         } else if (caracter_actual == '_' && estado == DIGITO_ENCONTRADO) {
@@ -372,6 +385,7 @@ ComponenteLexico *automata_delimitadores_triples(int caracter_actual) {
     }
     while (true) {
         caracter_actual = siguiente_caracter();
+        columna++;
         switch (estado) {
             case 1:
                 if (caracter_actual == '=')
@@ -478,6 +492,7 @@ ComponenteLexico *automata_operadores_delimitadores_dobles(int caracter_actual) 
 
     while (true) {
         caracter_actual = siguiente_caracter();
+        columna++;
         switch (estado) {
             case 1:
                 if (caracter_actual == '=')
@@ -571,8 +586,13 @@ void automata_string_triples_comillas() {
     int caracter_actual;
     int estado = NO_HAY_COMILLAS;
     int caracter_escape = NO_HAY_CARACTER_DE_ESCAPE;
-    while (true) {
+    while (true) { // Se procesan carácteres hasta que se reconoce la secuencia de parada (""") o el final del archivo
         caracter_actual = siguiente_caracter();
+        columna++;
+        if (caracter_actual == '\n') {
+            fila++;
+            columna = 1;
+        }
         switch (estado) {
             case NO_HAY_COMILLAS:
                 if(caracter_actual == '\"' && caracter_escape == NO_HAY_CARACTER_DE_ESCAPE)
@@ -618,6 +638,7 @@ void automata_string_triples_comillas() {
 
 ComponenteLexico *retroceder_y_aceptar_lexema(int comp) {
     retroceder_caracter();
+    columna--;
     return aceptar_lexema(comp);
 }
 
@@ -654,14 +675,14 @@ void saltar_linea() {
     do {
         caracter_actual = siguiente_caracter();
     } while (caracter_actual != '\n');
-    columna = 0;
+    columna = 1;
     fila++;
     saltar_caracter(); // Borramos el buffer
 }
 
 void informar_superacion_tamano_maximo_lexema() {
     if (enviar_al_analizador_sintactico) {
-        lanzar_error(ERR_TAMANO_MAXIMO_DE_LEXEMA_EXCEDIDO, 0, 0);
+        lanzar_error(ERR_TAMANO_MAXIMO_DE_LEXEMA_EXCEDIDO, fila, columna);
         componente_lexico->lexema = obtener_lexema();
         tam_maximo_de_lexema_excedido = true;
         if (introducir_en_tabla_de_simoblos) {
@@ -669,6 +690,14 @@ void informar_superacion_tamano_maximo_lexema() {
             buscar_e_insertar_en_tabla_de_simbolos(componente_lexico->lexema);
         }
     }
+}
+
+int get_fila() {
+    return fila;
+}
+
+int get_columna() {
+    return columna;
 }
 
 ComponenteLexico *terminar_analisis_lexico() {

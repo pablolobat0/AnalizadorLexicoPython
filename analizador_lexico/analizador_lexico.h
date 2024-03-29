@@ -10,4 +10,8 @@ ComponenteLexico *siguiente_componente_lexico();
 
 void informar_superacion_tamano_maximo_lexema();
 
+int get_fila();
+
+int get_columna();
+
 #endif //INC_01_ANALIZADOR_LEXICO_H
