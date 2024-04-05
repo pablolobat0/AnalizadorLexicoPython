@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "gestion_de_errores/gestion_de_errores.h"
 #include "tabla_de_simbolos/definiciones.h"
+#include "tabla_de_simbolos/tabla_de_simbolos.h"
 
 void abrir_archivo_fuente(char *nombre_archivo);
 void siguiente_componente_lexico_flex(ComponenteLexico *componente_lexico);
@@ -11,8 +12,7 @@ void cerrar();
 
 %option noyywrap noinput nounput
 
-DELIMITADOR    [ \t\n\r]
-ESPACIADO    {DELIMITADOR}+
+ESPACIADO    [ \t\n\r]+
 
 DIGIT [0-9]
 NONZERODIGIT [1-9]
@@ -47,7 +47,7 @@ COMENTARIOS #.*
 
 %%
 
-[ \t\n\r]+              { }
+{ESPACIADO}                 {}
 {COMENTARIOS}               {}
 
 {IDENTIFICADOR}           { return ID; }
@@ -56,7 +56,29 @@ COMENTARIOS #.*
 {FLOATNUMBER}             { return FLOAT; }
 {INTEGER}                 { return INT; }
 
-
+"**="    { return DOUBLE_STAR_EQUAL; }
+"**"     { return DOUBLE_STAR; }
+"//="    { return FLOOR_DIVIDE_EQUAL; }
+"//"     { return DOUBLE_SLASH; }
+">>="    { return RIGHT_SHIFT_EQUAL; }
+">>"     { return RIGHT_SHIFT; }
+"<<="    { return LEFT_SHIFT_EQUAL; }
+"<<"     { return LEFT_SHIFT; }
+">="     { return GREATER_OR_EQUAL; }
+"<="     { return LESS_OR_EQUAL; }
+"!="     { return NOT_EQUAL; }
+"=="     { return EQUAL_EQUAL; }
+":="     { return ASSIGMENT; }
+"->"     { return ARROW_OPERATOR; }
+"+="     { return PLUS_EQUAL; }
+"-="     { return MINUS_EQUAL; }
+"*="     { return STAR_EQUAL; }
+"/="     { return DIVIDE_EQUAL; }
+"%="     { return MODULO_EQUAL; }
+"@="     { return AT_EQUAL; }
+"&="     { return AND_EQUAL; }
+"|="     { return OR_EQUAL; }
+"^="     { return XOR_EQUAL; }
 {SIMBOLO}   {return (int) *yytext;}
 
 .                       { lanzar_error(ERR_CARACTER_NO_RECONOCIDO, -1, -1);}
@@ -86,7 +108,7 @@ void siguiente_componente_lexico_flex(ComponenteLexico *componente_lexico) {
     }
 }
 
-void cerrar(){
+void cerrar() {
     fclose(yyin);
     yylex_destroy();
 }

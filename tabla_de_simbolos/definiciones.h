@@ -56,7 +56,7 @@ typedef struct {
 #define MODULO_EQUAL 344 // '%='
 #define AT_EQUAL 345 // '@='
 #define AND_EQUAL 346 // '&='
-#define OR_EQUAL 347 // '/='
+#define OR_EQUAL 347 // '|='
 #define XOR_EQUAL 348 // '^='
 #define RIGHT_SHIFT_EQUAL 349 // '>>='
 #define LEFT_SHIFT_EQUAL 350 // '<<='
