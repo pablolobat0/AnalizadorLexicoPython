@@ -6,7 +6,7 @@
 #include "tabla_de_simbolos/tabla_de_simbolos.h"
 #include "analizador_sintactico/analizador_sintactico.h"
 #include "gestion_de_errores/gestion_de_errores.h"
-#include "lex.yy.h"
+#include "flex/lex.yy.h"
 
 bool es_fichero_python(char *nombre_fichero);
 
