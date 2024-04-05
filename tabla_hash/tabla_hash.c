@@ -114,7 +114,7 @@ void imprimir_tabla_hash(TablaHash *tabla_hash) {
     for (int i = 0; i < tabla_hash->capacidad; i++) {
         HashItem *item = tabla_hash->items[i];
         while (item != NULL) {
-            printf("%d %s\n", item->value, item->key);
+            printf("%d %s -> ", item->value, item->key);
             item = item->siguiente;
         }
     }
